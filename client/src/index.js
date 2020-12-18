@@ -3,9 +3,13 @@ import ReactDOM from 'react-dom';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
+import io from 'socket.io-client';
+const serverUrl = "http://localhost:3000"
+const socket = io.connect(serverUrl)
+
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <App socket={socket}/>
   </React.StrictMode>,
   document.getElementById('root')
 );

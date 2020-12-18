@@ -1,4 +1,4 @@
-const Player = require("./Player")
+const { Player } = require("./Player")
 
 class Game {
     constructor(sendStateToClients) {

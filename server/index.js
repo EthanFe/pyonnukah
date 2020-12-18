@@ -1,73 +1,68 @@
 const { Game } = require("./game_logic/Game")
 const { makeUniqueId } = require("./utils")
 
-const games = {}
-
 const startServer = () => {
   const port = process.env.PORT || '3000'
-  const server = require('socket.io')().listen(port);
+  const server = require('socket.io')({
+    cors: {
+      origin: "http://localhost:3001",
+      methods: ["GET", "POST"]
+    }
+  }).listen(port);
 
-  server.on('connection', (socket) => {
-    console.log(`New client connected, creating socket connection with socket id ${socket.id}`)
-    registerGameEvents(socket, server)
+  server.on('connection', (client) => {
+    console.log(`New client connected, creating socket connection with client id ${client.id}`)
+
+    registerGameEvents(client, server)
+
+    client.on('disconnect', (disconnectReason) => {
+      console.log(`Client with id ${client.id} disconnected`)
+    });
   });
-
   console.log("Socket is ready.")
 
   return server
 }
 
-function registerGameEvents(socket, server) {
-  socket.on("makeGame", () => {
-    makeGame(socket, server)
-  })
-
-  socket.on("joinGame", (gameId) => {
-    joinGame(socket, server, gameId)
+function registerGameEvents(client, server) {
+  client.on("joinGame", () => {
+    joinGame(client, server)
   })
 }
 
-function registerInputListeners(socket, game) {
-  socket.on("move", (direction) => {
-    game.moveCommandIssued(socket.id, direction)
+function registerInputListeners(client, game) {
+  client.on("move", (direction) => {
+    game.moveCommandIssued(client.id, direction)
   })
-  socket.on("ready", (playerIsReady) => {
-    game.readyToggled(socket.id, playerIsReady)
+  client.on("ready", (playerIsReady) => {
+    game.readyToggled(client.id, playerIsReady)
   })
-  socket.on("jump", () => {
-    game.playerJumped(socket.id)
+  client.on("jump", () => {
+    game.playerJumped(client.id)
   })
 }
 
-function makeGame(socket, server) {
-  const gameId = makeUniqueId(games)
-  const game = new Game(() => updateClientsInRoom(gameId, server))
-  games[gameId] = game
-  socket.emit("newGameCreated", gameId)
+function makeGame(server) {
+  const gameId = makeUniqueId({})
+  return {game: new Game(() => updateClientsInRoom(gameId, server)), gameId: gameId}
 }
 
-function joinGame(socket, server, gameId) {
-  console.log(`Client with id ${socket.id} trying to join game with id: ${gameId}`)
+function joinGame(client, server) {
+  console.log(`Client with id ${client.id} trying to join game`)
 
-  const game = games[gameId]
-  if (game === undefined) {
-    console.log("Failed to join game, no game with that id found")
-    socket.emit("gameJoinResult", false)
-    return
-  }
-
-  game.playerJoined(socket.id)
-  socket.join(gameId)
-  registerInputListeners(socket, game)
+  game.playerJoined(client.id)
+  client.join(gameId)
+  registerInputListeners(client, game)
   updateClientsInRoom(gameId, server)
 
   console.log("Successfully joined game")
-  socket.emit("gameJoinResult", true)
+  client.emit("gameJoinResult", client.id)
 }
 
 function updateClientsInRoom(gameId, server) {
   console.log("Updating clients in room for game: " + gameId)
-  server.to(gameId).emit("updateGameState", games[gameId].latestState)
+  server.to(gameId).emit("updateGameState", game.latestState)
 }
 
 const server = startServer()
+const {game, gameId} = makeGame(server)

@@ -1,3 +1,5 @@
+const { Bunny } = require("./Bunny")
+
 class Player {
   constructor(id) {
     this.id = id
