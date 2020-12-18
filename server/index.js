@@ -38,9 +38,6 @@ function registerInputListeners(client, game) {
   client.on("ready", (playerIsReady) => {
     game.readyToggled(client.id, playerIsReady)
   })
-  client.on("jump", () => {
-    game.jumpCommandIssued(client.id)
-  })
 }
 
 function makeGame(server) {

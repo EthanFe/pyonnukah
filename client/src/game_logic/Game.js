@@ -1,5 +1,4 @@
 const { UP, DOWN, LEFT, RIGHT } = require('../consts.js')
-const { Player } = require("./Player")
 
 class Game {
     constructor(setGameState, activePlayerId) {
@@ -18,29 +17,14 @@ class Game {
         const playerIds = Object.keys(newState.players)
         playerIds.forEach(playerId => {
             if (playerId !== this.activePlayerId || this.players[this.activePlayerId] === undefined) {
-                // console.log(newState.players[playerId])
-                this.players[playerId] = newState.players[playerId] //new Player(playerId, newState.players[playerId])
-                // this.players[playerId] = new Player(playerId, newState.players[playerId])
+                this.players[playerId] = newState.players[playerId]
             }
         })
-        // for (let playerId in newState.players) {
-            
-        // }
         this.displayUpdatedState()
     }
 
-    // get latestState() {
-    //     return {
-    //         players: Object.values(this.players).map(player => player.state),
-    //     }
-    // }
-
     localMovementInputted(keysHeld) {
         this.players[this.activePlayerId].keysHeld = keysHeld
-    }
-
-    jumpCommandIssued(playerId) {
-        
     }
 
     startSimulation() {

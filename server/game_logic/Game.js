@@ -38,10 +38,6 @@ class Game {
         this.sendStateToClients()
     }
 
-    jumpCommandIssued(playerId) {
-        
-    }
-
     readyToggled(id, playerIsReady) {
     //     const issuingPlayer = this.playerIdentityFromId(id)
     //     this.players[issuingPlayer].ready = playerIsReady
