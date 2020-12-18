@@ -5,7 +5,7 @@ const startServer = () => {
   const port = process.env.PORT || '3000'
   const server = require('socket.io')({
     cors: {
-      origin: "http://localhost:3001",
+      origin: ["http://localhost:3001", "http://192.168.0.108:3001"],
       methods: ["GET", "POST"]
     }
   }).listen(port);
@@ -32,8 +32,8 @@ function registerGameEvents(client, server) {
 }
 
 function registerInputListeners(client, game) {
-  client.on("move", (direction) => {
-    game.moveCommandIssued(client.id, direction)
+  client.on("movementInputted", ({keysHeld, bunnyState}) => {
+    game.movementInputted(client.id, keysHeld, bunnyState)
   })
   client.on("ready", (playerIsReady) => {
     game.readyToggled(client.id, playerIsReady)
@@ -45,7 +45,10 @@ function registerInputListeners(client, game) {
 
 function makeGame(server) {
   const gameId = makeUniqueId({})
-  return {game: new Game(() => updateClientsInRoom(gameId, server)), gameId: gameId}
+  return {
+    game: new Game(() => updateClientsInRoom(gameId, server)),
+    gameId: gameId
+  }
 }
 
 function joinGame(client, server) {

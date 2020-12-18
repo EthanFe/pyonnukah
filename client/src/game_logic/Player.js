@@ -1,11 +1,16 @@
 const { Bunny } = require("./Bunny")
 
 class Player {
-  constructor(id) {
+  constructor(id, existingState = null) {
     this.id = id
     this.ready = false
-    this.bunny = new Bunny(this, 0, 0)
+    this.bunny = new Bunny(this, {x: 0, y: 0})
     this.keysHeld = {}
+    if (existingState !== null) {
+      this.bunny = new Bunny(this, existingState.bunny.position)
+      this.keysHeld = existingState.keysHeld
+      this.ready = existingState.ready
+    }
   }
 
   get state() {
@@ -19,10 +24,6 @@ class Player {
 
   updateKeysHeld(keysHeld) {
     this.keysHeld = keysHeld
-  }
-  
-  updateBunnyState(newState) {
-    this.bunny.updateState(newState)
   }
 }
 

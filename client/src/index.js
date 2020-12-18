@@ -4,7 +4,8 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 
 import io from 'socket.io-client';
-const serverUrl = "http://localhost:3000"
+// const serverUrl = "http://localhost:3000"
+const serverUrl = "http://3fe58cf047f9.ngrok.io"
 const socket = io.connect(serverUrl)
 
 ReactDOM.render(

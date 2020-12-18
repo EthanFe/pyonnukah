@@ -1,7 +1,7 @@
 class Bunny {
-  constructor(player, x, y) {
+  constructor(player, position) {
     this.player = player
-    this.position = {x, y}
+    this.position = position
     this.canJump = true
     this.velocity = {x: 0, y: 0}
   }
@@ -11,11 +11,6 @@ class Bunny {
       position: this.position,
       velocity: this.velocity
     }
-  }
-
-  updateState(newState) {
-    this.position = newState.position
-    this.velocity = newState.velocity
   }
 }
 
