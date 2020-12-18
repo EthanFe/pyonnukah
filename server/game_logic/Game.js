@@ -76,11 +76,17 @@ class Game {
     }
 
     accelerateObjects() {
-        const accelAmount = 1
-        const decelAmount = 5
-        const maxSpeed = 30
-        this.players.forEach(player => {
-            const {keysHeld, bunny} = player
+        this.updateHorizontalMovement()
+        this.updateVerticalMovement()
+    }
+
+    updateHorizontalMovement() {
+        const accelAmount = 0.6
+        const decelAmount = 0.8
+        const maxSpeed = 12
+        const playerIds = Object.keys(this.players)
+        playerIds.forEach(playerId => {
+            const {keysHeld, bunny} = this.players[playerId]
             if (keysHeld[RIGHT] && !keysHeld[LEFT]) {
                 bunny.velocity.x += accelAmount
                 if (bunny.velocity.x > maxSpeed) {
@@ -111,10 +117,42 @@ class Game {
         })
     }
 
+    updateVerticalMovement() {
+        const accelAmount = 1.6
+        const gravityAmount = 0.8
+        const maxVerticalSpeed = 18
+
+        const playerIds = Object.keys(this.players)
+        playerIds.forEach(playerId => {
+            const {keysHeld, bunny} = this.players[playerId]
+            console.log(bunny)
+            if (bunny.velocity.y >= maxVerticalSpeed || (bunny.position.y > 0 && !keysHeld[UP])) {
+                bunny.canJump = false
+            }
+            if (keysHeld[UP] && bunny.canJump) {
+                bunny.velocity.y += accelAmount
+                if (bunny.velocity.y > maxVerticalSpeed) {
+                    bunny.velocity.y = maxVerticalSpeed
+                }
+            } else if (bunny.position.y > 0) {
+                bunny.velocity.y -= gravityAmount
+                if (bunny.velocity.y < maxVerticalSpeed * -1) {
+                    bunny.velocity.y = maxVerticalSpeed * -1
+                }
+            } else if (bunny.position.y <= 0) {
+                bunny.velocity.y = 0
+                bunny.canJump = true
+            }
+        })
+    }
+
     moveObjects() {
+        const minPosY = 0
+
         let dirty = false
-        this.players.forEach(player => {
-            const bunny = player.bunny
+        const playerIds = Object.keys(this.players)
+        playerIds.forEach(playerId => {
+            const bunny = this.players[playerId].bunny
             if (bunny.velocity.x !== 0) {
                 dirty = true
                 bunny.position.x += bunny.velocity.x
@@ -122,6 +160,9 @@ class Game {
             if (bunny.velocity.y !== 0) {
                 dirty = true
                 bunny.position.y += bunny.velocity.y
+                if (bunny.position.y < minPosY) {
+                    bunny.position.y = minPosY
+                }
             }
         })
         return dirty

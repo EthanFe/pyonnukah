@@ -9,7 +9,8 @@ class Bunny {
   get state() {
     return {
       position: this.position,
-      velocity: this.velocity
+      velocity: this.velocity,
+      canJump: this.canJump,
     }
   }
 
