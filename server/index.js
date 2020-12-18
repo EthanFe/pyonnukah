@@ -17,6 +17,7 @@ const startServer = () => {
 
     client.on('disconnect', (disconnectReason) => {
       console.log(`Client with id ${client.id} disconnected`)
+      game.playerLeft(client.id)
     });
   });
   console.log("Socket is ready.")
@@ -38,7 +39,7 @@ function registerInputListeners(client, game) {
     game.readyToggled(client.id, playerIsReady)
   })
   client.on("jump", () => {
-    game.playerJumped(client.id)
+    game.jumpCommandIssued(client.id)
   })
 }
 

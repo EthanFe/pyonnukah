@@ -14,12 +14,25 @@ class Game {
         }
     }
 
-    playerJoined(id) {
-        this.players.push(new Player(id))
+    playerJoined(playerId) {
+        this.players.push(new Player(playerId))
         this.sendStateToClients()
     }
 
-    // readyToggled(id, playerIsReady) {
+    playerLeft(playerId) {
+        this.players = this.players.filter(player => player.id !== playerId)
+        this.sendStateToClients()
+    }
+
+    moveCommandIssued(playerId, direction) {
+
+    }
+
+    jumpCommandIssued(playerId) {
+        
+    }
+
+    readyToggled(id, playerIsReady) {
     //     const issuingPlayer = this.playerIdentityFromId(id)
     //     this.players[issuingPlayer].ready = playerIsReady
     //     if (this.playersAreReady) {
@@ -29,7 +42,7 @@ class Game {
     //         this.levelStartTimer = null
     //     }
     //     this.sendStateToClients()
-    // }
+    }
 
     get playersAreReady() {
         return this.players.every(player => player.ready)
