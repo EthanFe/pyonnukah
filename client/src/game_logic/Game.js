@@ -90,7 +90,6 @@ class Game {
         const playerIds = Object.keys(this.players)
         playerIds.forEach(playerId => {
             const {keysHeld, bunny} = this.players[playerId]
-            console.log(bunny)
             if (bunny.velocity.y >= maxVerticalSpeed || (bunny.position.y > 0 && !keysHeld[UP])) {
                 bunny.canJump = false
             }
