@@ -46,9 +46,12 @@ class Game {
         const accelAmount = 0.6
         const decelAmount = 0.8
         const maxSpeed = 12
+        
         const playerIds = Object.keys(this.players)
         playerIds.forEach(playerId => {
             const {keysHeld, bunny} = this.players[playerId]
+            const bunnyIsGrounded = bunny.position.y === 0
+
             if (keysHeld[RIGHT] && !keysHeld[LEFT]) {
                 bunny.velocity.x += accelAmount
                 if (bunny.velocity.x > maxSpeed) {
@@ -60,7 +63,7 @@ class Game {
                     bunny.velocity.x = maxSpeed * -1
                 }
             } else {
-                if (bunny.velocity.x !== 0) {
+                if (bunny.velocity.x !== 0 && bunnyIsGrounded) {
                     if (bunny.velocity.x > 0) {
                         if (bunny.velocity.x >= decelAmount) {
                             bunny.velocity.x -= decelAmount
