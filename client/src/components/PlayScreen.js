@@ -7,6 +7,7 @@ import menorahImage from '../images/menorah.png';
 import candlesImage from '../images/candles_on_menorah.png';
 import candleFlamesImage from '../images/candles_on_menorah_flames.png';
 import candleFlameImage from '../images/single_candle_flame.png';
+import singleCandle from '../images/single_candle_with_flame.png';
 
 const totalScreenDimensions = {x: 900, y: 600}
 
@@ -18,7 +19,7 @@ const styles = {
     borderRadius: "7px",
     position: "relative",
   },
-  image: ({x, y}, dimensions) => {
+  image: ({x, y}, dimensions, rotation = 0) => {
     const rangeOfPositionForImages = {x: totalScreenDimensions.x - dimensions.width,
                                       y: totalScreenDimensions.y - dimensions.height}
     return {
@@ -26,40 +27,62 @@ const styles = {
       height: `${dimensions.height}px`,
       position: "absolute",
       top: rangeOfPositionForImages.y - (y / 1000) * rangeOfPositionForImages.y,
-      left: (x / 1000) * rangeOfPositionForImages.x
+      left: (x / 1000) * rangeOfPositionForImages.x,
+      transform: `rotate(${rotation}deg)`,
     }
   },
 }
 
 const PlayScreen = ({gameState, keyPressed, keyReleased}) => {
-  const bunnyPositions = Object.values(gameState.players).map(player => player.bunny.position)
+  const bunnies = Object.values(gameState.players).map(player => player.bunny)
 
   return (
     <div className="wrapper-thing" tabIndex={0} onKeyDown={({key}) => keyPressed(key)} onKeyUp={({key}) => keyReleased(key)}>
       <div className="inner-wrapper-thing">
         <div style={styles.playArea}>
-          <Menorah position={{x: 500, y: 0}} candles={2} litCandles={1}/>
-          {bunnyPositions.map((bunny, index) => 
-            <img
-              style={styles.image(bunny, {width: 64, height: 64})}
-              src={bunnyImage}
-              alt=""
-              key={index}
-            />
-          )}
+          <Menorah position={{x: 500, y: 0}} displayShamus={gameState.shamusOnMenorah} candles={gameState.candlesOnLevel} litCandles={gameState.litCandles}/>
+          <Bunnies bunnies={bunnies}/>
         </div>
       </div>
     </div>
   )
 }
 
-const Menorah = ({position, candles, litCandles}) => {
+const Bunnies = ({bunnies}) => {
+  return (
+    bunnies.map((bunny, index) => <Bunny key={index} position={bunny.position} carryingCandle={bunny.carryingCandle}/> )
+  )
+}
+
+const Bunny = ({position, carryingCandle}) => {
+  const bunnyDimensions = {width: 64, height: 64}
+  return (
+    <>
+      {carryingCandle &&
+      <img
+        style={{
+          ...styles.image({x: 0, y: position.y + 15}, {width: 24, height: 72}, 25),
+          left: (position.x / 1000) * (totalScreenDimensions.x - bunnyDimensions.width) + 50
+        }}
+        src={singleCandle}
+        alt=""
+      />}
+      <img
+        style={styles.image(position, bunnyDimensions)}
+        src={bunnyImage}
+        alt=""
+      />
+    </>
+  )
+}
+
+const Menorah = ({position, displayShamus, candles, litCandles}) => {
   const dimensions = {width: 524, height: 400}
 
   return (
     <>
-      <Shamus position={position} dimensions={dimensions}/>
-      <Candles position={position} dimensions={dimensions} candles={7} litCandles={{0: true, 1: true, 2: false, 3: true, 4: false, 5: true, 6: true, 7: true}}/>
+      <Shamus display={displayShamus} position={position} dimensions={dimensions}/>
+      <Candles position={position} dimensions={dimensions} candles={candles} litCandles={litCandles}/>
       <img
         style={styles.image(position, dimensions)}
         src={menorahImage}
@@ -69,7 +92,8 @@ const Menorah = ({position, candles, litCandles}) => {
   )
 }
 
-const Shamus = ({position, dimensions}) => {
+const Shamus = ({position, dimensions, display}) => {
+  if (!display) { return null }
   return (
     <>
       <img
@@ -109,18 +133,17 @@ const Candles = ({position, dimensions, candles, litCandles}) => {
     {x: ((900 - 648) / 900) * 1000, y: ((600 - 305) / 600) * 1000},
     {x: ((900 - 692) / 900) * 1000, y: ((600 - 305) / 600) * 1000},
   ]
-  console.log(flamePositionOffsets)
 
   const candleFlames = Object.keys(litCandles).filter(index => litCandles[index]).map(index =>
     <img
       style={styles.image({x: flamePositionOffsets[index].x, y: flamePositionOffsets[index].y}, {width: 70, height: 91})}
       src={candleFlameImage}
       alt=""
+      key={index}
     />
   )
   const cutoff = cutoffValues[candles]
   const clipPathValue = `polygon(${cutoff.left}% 100%, ${cutoff.left}% 0%, 38% 0%, 38% 100%, ${cutoff.right}% 100%, ${cutoff.right}% 0%, 100% 0%, 100% 100%)`
-  console.log(clipPathValue)
   return (
     <span style={{position: "relative"}}>
       <img

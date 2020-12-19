@@ -31,7 +31,6 @@ const keyPressed = (key, keysHeld, socket, thisPlayer, game) => {
 const keyReleased = (key, keysHeld, socket, thisPlayer) => {
   if (movementKeys[key]) {
     keysHeld.current[movementKeys[key]] = false
-    console.log("hmm")
     socket.emit('movementInputted', {keysHeld: keysHeld.current, bunnyState: thisPlayer.bunny})
   }
 }

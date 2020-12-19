@@ -5,7 +5,10 @@ class Game {
     constructor(sendStateToClients) {
         this.activeLevel = null
         this.players = []
-        this.levelStartTimer = null
+        this.candlesOnLevel = 1
+        this.litCandles = {}
+        this.shamusOnMenorah = true
+
         this.sendStateToClients = sendStateToClients
         this.startSimulation()
     }
@@ -15,6 +18,9 @@ class Game {
         this.players.forEach(player => playersObject[player.id] = player.state)
         return {
             players: playersObject,
+            candlesOnLevel: this.candlesOnLevel,
+            litCandles: this.litCandles,
+            shamusOnMenorah: this.shamusOnMenorah
         }
     }
 
@@ -38,36 +44,11 @@ class Game {
         this.sendStateToClients()
     }
 
-    readyToggled(id, playerIsReady) {
-    //     const issuingPlayer = this.playerIdentityFromId(id)
-    //     this.players[issuingPlayer].ready = playerIsReady
-    //     if (this.playersAreReady) {
-    //         this.beginLevelStartTimer()
-    //     } else if (this.levelStartTimer !== null) {
-    //         clearTimeout(this.levelStartTimer)
-    //         this.levelStartTimer = null
-    //     }
-    //     this.sendStateToClients()
-    }
-
-    get playersAreReady() {
-        return this.players.every(player => player.ready)
-    }
-
-    // beginLevelStartTimer() {
-    //     this.levelStartTimer = setTimeout(() => {
-    //         this.launchLevel()
-    //     }, 2000)
-    // }
-
-    // launchLevel() {
-
-    // }
-
     startSimulation() {
         setInterval(() => {
             this.accelerateObjects()
             this.moveObjects()
+            this.checkForCandleCollisions()
         }, 1000 / 60)
     }
 
@@ -124,7 +105,6 @@ class Game {
         const playerIds = Object.keys(this.players)
         playerIds.forEach(playerId => {
             const {keysHeld, bunny} = this.players[playerId]
-            console.log(bunny)
             if (bunny.velocity.y >= maxVerticalSpeed || (bunny.position.y > 0 && !keysHeld[UP])) {
                 bunny.canJump = false
             }
@@ -165,6 +145,79 @@ class Game {
             }
         })
         return dirty
+    }
+
+    checkForCandleCollisions() {
+        const candleGrabbed = this.checkForCandleGrabbing()
+        const candleLit = this.checkForCandleLighting()
+
+        if (candleGrabbed || candleLit) {
+            const playerIds = Object.keys(this.latestState.players)
+            this.sendStateToClients()
+        }
+    }
+
+    checkForCandleGrabbing() {
+        if (!this.shamusOnMenorah) { return false }
+        let dirty = false
+        const playerIds = Object.keys(this.players)
+        const shamusPosition = {x: 500, y: 500}
+
+        let grabbingBunny = null
+        playerIds.forEach(playerId => {
+            const bunny = this.players[playerId].bunny
+            if (this.candleIsInRange(shamusPosition, bunny.position)) {
+                grabbingBunny = bunny
+            }
+        })
+
+        if (grabbingBunny !== null) {
+            grabbingBunny.carryingCandle = true
+            this.shamusOnMenorah = false
+            dirty = true
+        }
+        return dirty
+    }
+
+    checkForCandleLighting() {
+        let dirty = false
+        const playerIds = Object.keys(this.players)
+        const lightableCandlePositions = [
+            {x: 769, y: 447},
+            {x: 721, y: 447},
+            {x: 669, y: 447},
+            {x: 618, y: 447},
+            {x: 383, y: 447},
+            {x: 333, y: 447},
+            {x: 280, y: 447},
+            {x: 231, y: 447},
+        ]
+        .filter((candle, index) => index < this.candlesOnLevel)
+
+        const playerIdForBunnyCarryingCandle = playerIds.find(playerId => this.players[playerId].bunny.carryingCandle)
+        if (playerIdForBunnyCarryingCandle === undefined) {
+            return false
+        }
+        const bunnyCarryingCandle = this.players[playerIdForBunnyCarryingCandle].bunny
+
+        let litCandle = null
+        lightableCandlePositions.forEach((candlePosition, index) => {
+            if (this.candleIsInRange(candlePosition, bunnyCarryingCandle.position)) {
+                litCandle = index
+            }
+        })
+        if (litCandle !== null) {
+            this.litCandles[litCandle] = true
+            dirty = true
+        }
+
+        return dirty
+    }
+
+    candleIsInRange(candlePosition, bunnyPosition) {
+        const maxRange = 200
+        const dist = Math.sqrt(Math.pow(candlePosition.x - bunnyPosition.x, 2) + Math.pow(candlePosition.y - bunnyPosition.y, 2))
+        return dist <= maxRange
     }
 }
 

@@ -4,6 +4,7 @@ class Bunny {
     this.position = {x, y}
     this.canJump = true
     this.velocity = {x: 0, y: 0}
+    this.carryingCandle = false
   }
 
   get state() {
@@ -11,6 +12,7 @@ class Bunny {
       position: this.position,
       velocity: this.velocity,
       canJump: this.canJump,
+      carryingCandle: this.carryingCandle
     }
   }
 

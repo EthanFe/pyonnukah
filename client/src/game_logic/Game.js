@@ -5,8 +5,21 @@ class Game {
         this.setGameState = setGameState
 
         this.players = {}
+        this.candlesOnLevel = null
+        this.litCandles = {}
+        this.shamusOnMenorah = null
+
         this.activePlayerId = null
         this.startSimulation()
+    }
+
+    get latestState() {
+        return {
+            players: this.players,
+            candlesOnLevel: this.candlesOnLevel,
+            litCandles: this.litCandles,
+            shamusOnMenorah: this.shamusOnMenorah
+        }
     }
 
     setActivePlayer(playerId) {
@@ -16,10 +29,17 @@ class Game {
     updateState(newState) {
         const playerIds = Object.keys(newState.players)
         playerIds.forEach(playerId => {
+            if (this.players[playerId] !== undefined) {
+                this.players[playerId].bunny.carryingCandle = newState.players[playerId].bunny.carryingCandle //always update candle carrying state
+            }
             if (playerId !== this.activePlayerId || this.players[this.activePlayerId] === undefined) {
-                this.players[playerId] = newState.players[playerId]
+                this.players[playerId] = newState.players[playerId] // only update movement/velocity state for other, non-local bunnies
             }
         })
+        this.candlesOnLevel = newState.candlesOnLevel
+        this.litCandles = newState.litCandles
+        this.shamusOnMenorah = newState.shamusOnMenorah
+
         this.displayUpdatedState()
     }
 
@@ -133,7 +153,7 @@ class Game {
     }
 
     displayUpdatedState() {
-        this.setGameState({players: this.players})
+        this.setGameState(this.latestState)
     }
 }
 
