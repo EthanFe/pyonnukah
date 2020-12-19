@@ -183,13 +183,13 @@ const Shamus = ({position, dimensions, display}) => {
         style={{...styles.image({x: 500, y: 545}, {width: 70  * totalScreenDimensions.x / 900, height: 91 * totalScreenDimensions.x / 900})}}
         src={candleFlameImage}
         alt=""
+        className={"candle-flame"}
       />
     </>
   )
 }
 
 const Candles = ({position, dimensions, candles, litCandles}) => {
-  litCandles = {0: true}
   const cutoffValues = [
     {left: 38, right: 100},
     {left: 38, right: 89.5},
@@ -219,6 +219,7 @@ const Candles = ({position, dimensions, candles, litCandles}) => {
       src={candleFlameImage}
       alt=""
       key={index}
+      className={"candle-flame"}
     />
   )
   const cutoff = cutoffValues[candles]
