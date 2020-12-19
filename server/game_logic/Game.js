@@ -222,17 +222,26 @@ class Game {
             const activePyonSpeedModifier = this.bunnyCanCurrentlyPyon(bunny) ? pyonSpeedModifier : 1
             if (bunny.velocity.x !== 0) {
                 dirty = true
-                bunny.position.x += bunny.velocity.x * activePyonSpeedModifier
+                this.moveBunny(bunny, {x: bunny.velocity.x * activePyonSpeedModifier, y: 0})
             }
             if (bunny.velocity.y !== 0) {
                 dirty = true
-                bunny.position.y += bunny.velocity.y * activePyonSpeedModifier
+                this.moveBunny(bunny, {y: bunny.velocity.y * activePyonSpeedModifier, x: 0})
                 if (bunny.position.y < minPosY) {
                     bunny.position.y = minPosY
                 }
             }
         })
         return dirty
+    }
+
+    moveBunny(bunny, {x, y}) {
+        const oldBunnyXPos = bunny.position.x
+        bunny.position.x += x
+        bunny.position.y += y
+        if (bunny.position.x !== oldBunnyXPos) {
+            bunny.lastMovedDirection = bunny.position.x > oldBunnyXPos ? 1 : -1
+        }
     }
 
     checkForCandleCollisions() {

@@ -43,3 +43,12 @@
     height: 150px;
   }
 }
+
+.bunny {
+  transform: rotateY(0deg);
+  transition: transform 0.4s;
+}
+
+.bunny.left-facing {
+  transform: rotateY(180deg);
+}

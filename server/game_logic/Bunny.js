@@ -1,6 +1,7 @@
 class Bunny {
   constructor(player, x, y) {
     this.player = player
+    this.lastMovedDirection = 1
     this.position = {x, y}
     this.canJump = true
     this.canPyon = false
@@ -12,6 +13,7 @@ class Bunny {
   get state() {
     return {
       position: this.position,
+      lastMovedDirection: this.lastMovedDirection,
       velocity: this.velocity,
       canJump: this.canJump,
       canPyon: this.canPyon,

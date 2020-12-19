@@ -122,13 +122,17 @@ const PyonPairCircle = ({position, originTime}) => {
 
 const Bunnies = ({bunnies}) => {
   return (
-    bunnies.map((bunny, index) => <Bunny key={index} position={bunny.position} carryingCandle={bunny.carryingCandle}/> )
+    bunnies.map((bunny, index) => <Bunny key={index} bunny={bunny}/> )
   )
 }
 
-const Bunny = ({position, carryingCandle}) => {
+const Bunny = ({bunny}) => {
+  const {position, carryingCandle, lastMovedDirection} = bunny
   const bunnyDimensions = {width: 64 * totalScreenDimensions.x / 900, height: 64 * totalScreenDimensions.x / 900}
   const image = position.y > 0 ? bunnyJump : bunnyImage
+  const className = lastMovedDirection === 1 ? "bunny" : "bunny left-facing"
+  const bunnyStyle = styles.image(position, bunnyDimensions)
+  bunnyStyle.transform = ""
   return (
     <>
       {carryingCandle &&
@@ -141,9 +145,10 @@ const Bunny = ({position, carryingCandle}) => {
         alt=""
       />}
       <img
-        style={styles.image(position, bunnyDimensions)}
+        style={bunnyStyle}
         src={image}
         alt=""
+        className={className}
       />
     </>
   )
