@@ -1,4 +1,5 @@
 const { UP, DOWN, LEFT, RIGHT } = require('../consts.js')
+const { makeUniqueId } = require('../utils.js')
 
 class Game {
     constructor(setGameState, activePlayerId) {
@@ -8,6 +9,7 @@ class Game {
         this.candlesOnLevel = null
         this.litCandles = {}
         this.shamusOnMenorah = null
+        this.activePyonPairs = []
 
         this.activePlayerId = null
         this.startSimulation()
@@ -18,7 +20,8 @@ class Game {
             players: this.players,
             candlesOnLevel: this.candlesOnLevel,
             litCandles: this.litCandles,
-            shamusOnMenorah: this.shamusOnMenorah
+            shamusOnMenorah: this.shamusOnMenorah,
+            activePyonPairs: this.activePyonPairs,
         }
     }
 
@@ -50,11 +53,66 @@ class Game {
     startSimulation() {
         setInterval(() => {
             this.accelerateObjects()
-            const dirty = this.moveObjects()
+
+            const newPyonPairs = this.updatePyonCapableBunnyPairs()
+            const objectsMoved = this.moveObjects()
+            const dirty = newPyonPairs || objectsMoved // how would objectsmoved ever not be true but newpyonpairs was? no clue. but fuckin whatever
             if (dirty) {
                 this.displayUpdatedState()
             }
         }, 1000 / 60)
+    }
+
+    updatePyonCapableBunnyPairs() {
+        let dirty = false
+
+        let existingPyonPairs = this.activePyonPairs
+        existingPyonPairs = existingPyonPairs.filter(pyonPair => 
+            this.bunniesArePyonCapable(
+                this.players[pyonPair.playerIds[0]].bunny,
+                this.players[pyonPair.playerIds[1]].bunny
+            )
+        )
+        if (existingPyonPairs.length < this.activePyonPairs.length) { dirty = true }
+
+        const playerIds = Object.keys(this.players)
+        const pyonPairs = []
+        for (let i = 0; i < playerIds.length; i++) {
+            const playerId1 = playerIds[i]
+            const bunny = this.players[playerId1].bunny
+            if (i === playerIds.length - 1) { continue }
+
+            for (let j = i + 1; j < playerIds.length; j++) {
+                const playerId2 = playerIds[j]
+                const otherBunny = this.players[playerId2].bunny
+                if (this.bunniesArePyonCapable(bunny, otherBunny)) {
+                    if (existingPyonPairs.find(pyonPair => pyonPair.playerIds.find(pairedPlayerId => pairedPlayerId === playerId1) !== undefined
+                                                        && pyonPair.playerIds.find(pairedPlayerId => pairedPlayerId === playerId2) !== undefined)
+                        === undefined) {
+                        pyonPairs.push(
+                            {
+                                id: makeUniqueId(existingPyonPairs.map(pair => pair.id)),
+                                playerIds: [playerId1, playerId2],
+                                originTime: Date.now()
+                            }
+                        )
+                    }
+                }
+            }
+        }
+        if (pyonPairs.length > 0) { dirty = true }
+
+        this.activePyonPairs = [...existingPyonPairs, ...pyonPairs]
+        return dirty
+    }
+
+    bunniesArePyonCapable(bunny1, bunny2) {
+        const maxRange = 200
+        const dist = Math.sqrt(Math.pow(bunny1.position.x - bunny2.position.x, 2) + Math.pow(bunny1.position.y - bunny2.position.y, 2))
+        // requires: both bunnies are airborne, going upward, and fairly close to each other
+        return bunny1.position.y > 0 && bunny1.velocity.y >= 0 &&
+               bunny2.position.y > 0 && bunny2.velocity.y >= 0 &&
+               dist <= maxRange
     }
 
     accelerateObjects() {

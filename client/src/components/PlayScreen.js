@@ -11,6 +11,11 @@ import singleCandle from '../images/single_candle_with_flame.png';
 
 const totalScreenDimensions = {x: 900, y: 600}
 
+const rangeOfPositionForObject = (objectDimensions) => ({
+  x: totalScreenDimensions.x - objectDimensions.width,
+  y: totalScreenDimensions.y - objectDimensions.height
+})
+
 const styles = {
   playArea: {
     width: `${totalScreenDimensions.x}px`,
@@ -20,8 +25,7 @@ const styles = {
     position: "relative",
   },
   image: ({x, y}, dimensions, rotation = 0) => {
-    const rangeOfPositionForImages = {x: totalScreenDimensions.x - dimensions.width,
-                                      y: totalScreenDimensions.y - dimensions.height}
+    const rangeOfPositionForImages = rangeOfPositionForObject(dimensions)
     return {
       width: `${dimensions.width}px`,
       height: `${dimensions.height}px`,
@@ -42,9 +46,45 @@ const PlayScreen = ({gameState, keyPressed, keyReleased}) => {
         <div style={styles.playArea}>
           <Menorah position={{x: 500, y: 0}} displayShamus={gameState.shamusOnMenorah} candles={gameState.candlesOnLevel} litCandles={gameState.litCandles}/>
           <Bunnies bunnies={bunnies}/>
+          <PyonPairCircles pyonPairs={gameState.activePyonPairs.map(pyonPair => ({id: pyonPair.id, originTime: pyonPair.originTime, bunnies: pyonPair.playerIds.map(playerId => gameState.players[playerId].bunny)}))}/>
+          <div>
+            Active pyon pairs: {gameState.activePyonPairs.length}
+          </div>
         </div>
       </div>
     </div>
+  )
+}
+
+const PyonPairCircles = ({pyonPairs}) => {
+  return (
+    <>
+      {pyonPairs.map(pyonPair => {
+        const midPoint = {x: (pyonPair.bunnies[0].position.x + pyonPair.bunnies[1].position.x) / 2,
+                          y: (pyonPair.bunnies[0].position.y + pyonPair.bunnies[1].position.y) / 2}
+        return <PyonPairCircle key={pyonPair.id} position={midPoint} originTime={pyonPair.originTime}/>
+      })}
+    </>
+  )
+}
+
+const PyonPairCircle = ({position, originTime}) => {
+  const {x, y} = position
+
+  const age = Date.now() - originTime
+  const size = (age <= 400) ? (50 * (age / 400)) : (100 * ((age - 400) / 1600) + 50)
+
+  const rangeOfPosition = rangeOfPositionForObject({width: size, height: size})
+
+  return (
+    <span
+      style={{
+        position: "absolute",
+        left: (x / 1000) * rangeOfPosition.x,
+        top: rangeOfPosition.y - (y / 1000) * rangeOfPosition.y,
+      }}
+      className={"pyon-pair-circle"}
+    />
   )
 }
 

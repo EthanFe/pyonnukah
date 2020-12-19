@@ -20,7 +20,7 @@ class Game {
             players: playersObject,
             candlesOnLevel: this.candlesOnLevel,
             litCandles: this.litCandles,
-            shamusOnMenorah: this.shamusOnMenorah
+            shamusOnMenorah: this.shamusOnMenorah,
         }
     }
 
@@ -152,7 +152,6 @@ class Game {
         const candleLit = this.checkForCandleLighting()
 
         if (candleGrabbed || candleLit) {
-            const playerIds = Object.keys(this.latestState.players)
             this.sendStateToClients()
         }
     }
