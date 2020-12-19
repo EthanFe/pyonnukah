@@ -4,10 +4,11 @@ const { makeUniqueId } = require("../../client/src/utils")
 
 class Game {
     constructor(sendStateToClients) {
-        this.activeLevel = null
+        // this.activeLevel = null
         this.players = []
         this.candlesOnLevel = 1
         this.litCandles = {}
+        this.levelWon = false
         this.shamusOnMenorah = true
         this.activePyonPairs = []
 
@@ -294,6 +295,7 @@ class Game {
         })
         if (litCandle !== null) {
             this.litCandles[litCandle] = true
+            this.checkForLevelVictory()
             dirty = true
         }
 
@@ -301,9 +303,36 @@ class Game {
     }
 
     candleIsInRange(candlePosition, bunnyPosition) {
-        const maxRange = 200
+        const maxRange = 100
         const dist = Math.sqrt(Math.pow(candlePosition.x - bunnyPosition.x, 2) + Math.pow(candlePosition.y - bunnyPosition.y, 2))
         return dist <= maxRange
+    }
+
+    checkForLevelVictory() {
+        const lastLevel = 8
+        if (Object.keys(this.litCandles).filter(index => this.litCandles[index]).length >= this.candlesOnLevel
+            && this.candlesOnLevel < lastLevel
+            && !this.levelWon) {
+            this.startLevelTransitionTimer()
+            this.levelWon = true
+        }
+    }
+
+    startLevelTransitionTimer() {
+        const levelTransitionDelay = 5000
+        setTimeout(() => {
+            this.startNextLevel()
+        }, levelTransitionDelay)
+    }
+
+    startNextLevel() {
+        this.candlesOnLevel = this.candlesOnLevel + 1
+        console.log("Level completed -- going to level " + this.candlesOnLevel)
+        this.litCandles = {}
+        this.levelWon = false
+        this.shamusOnMenorah = true
+        this.players.forEach(player => player.bunny.carryingCandle = false)
+        this.sendStateToClients()
     }
 }
 

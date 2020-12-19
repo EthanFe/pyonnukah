@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import PlayScreen from './components/PlayScreen';
 import { Game } from './game_logic/Game';
 import { movementKeys } from './consts.js'
+import TransitionWrapper from './components/TransitionWrapper';
 
 const joinGame = (socket) => {
   socket.emit('joinGame')
@@ -80,7 +81,9 @@ function App({socket}) {
   }
 
   return (
-    <PlayScreen gameState={gameState} keyPressed={(key) => keyPressed(key, keysHeld, socket, thisPlayer, game)} keyReleased={(key) => keyReleased(key, keysHeld, socket, thisPlayer)}/>
+      <TransitionWrapper diffData={gameState.candlesOnLevel} scale={1} transitionTime={0.85} transitionType="fade">
+        <PlayScreen gameState={gameState} keyPressed={(key) => keyPressed(key, keysHeld, socket, thisPlayer, game)} keyReleased={(key) => keyReleased(key, keysHeld, socket, thisPlayer)}/>
+      </TransitionWrapper>
   );
 }
 

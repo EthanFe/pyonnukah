@@ -15,6 +15,7 @@ class Bunny {
       velocity: this.velocity,
       canJump: this.canJump,
       canPyon: this.canPyon,
+      hasPyonned: this.hasPyonned,
       carryingCandle: this.carryingCandle
     }
   }

@@ -9,6 +9,26 @@ import candleFlamesImage from '../images/candles_on_menorah_flames.png';
 import candleFlameImage from '../images/single_candle_flame.png';
 import singleCandle from '../images/single_candle_with_flame.png';
 
+import background1 from '../images/background_1.jpg';
+import background2 from '../images/background_2.jpg';
+import background3 from '../images/background_3.jpg';
+import background4 from '../images/background_4.jpg';
+import background5 from '../images/background_5.jpg';
+import background6 from '../images/background_6.jpg';
+import background7 from '../images/background_7.jpg';
+import background8 from '../images/background_8.jpg';
+
+const backgroundImagesForLevels = [
+  background1,
+  background2,
+  background3,
+  background4,
+  background5,
+  background6,
+  background7,
+  background8
+]
+
 const totalScreenDimensions = {x: 900, y: 600}
 
 const rangeOfPositionForObject = (objectDimensions) => ({
@@ -17,13 +37,6 @@ const rangeOfPositionForObject = (objectDimensions) => ({
 })
 
 const styles = {
-  playArea: {
-    width: `${totalScreenDimensions.x}px`,
-    height: `${totalScreenDimensions.y}px`,
-    backgroundColor: "slategray",
-    borderRadius: "7px",
-    position: "relative",
-  },
   image: ({x, y}, dimensions, rotation = 0) => {
     const rangeOfPositionForImages = rangeOfPositionForObject(dimensions)
     return {
@@ -38,12 +51,22 @@ const styles = {
 }
 
 const PlayScreen = ({gameState, keyPressed, keyReleased}) => {
+  const playAreaStyle = {
+    width: `${totalScreenDimensions.x}px`,
+    height: `${totalScreenDimensions.y}px`,
+    borderRadius: "7px",
+    position: "relative",
+    backgroundImage: `url(${backgroundImagesForLevels[gameState.candlesOnLevel - 1]}`,
+    backgroundSize: "900px"
+  }
+
   const bunnies = Object.values(gameState.players).map(player => player.bunny)
+  console.log(gameState)
 
   return (
     <div className="wrapper-thing" tabIndex={0} onKeyDown={({key}) => keyPressed(key)} onKeyUp={({key}) => keyReleased(key)}>
       <div className="inner-wrapper-thing">
-        <div style={styles.playArea}>
+        <div style={playAreaStyle}>
           <Menorah position={{x: 500, y: 0}} displayShamus={gameState.shamusOnMenorah} candles={gameState.candlesOnLevel} litCandles={gameState.litCandles}/>
           <Bunnies bunnies={bunnies}/>
           <PyonPairCircles pyonPairs={gameState.activePyonPairs.map(pyonPair => ({id: pyonPair.id, originTime: pyonPair.originTime, bunnies: pyonPair.playerIds.map(playerId => gameState.players[playerId].bunny)}))}/>
@@ -182,6 +205,7 @@ const Candles = ({position, dimensions, candles, litCandles}) => {
       key={index}
     />
   )
+  console.log(candles)
   const cutoff = cutoffValues[candles]
   const clipPathValue = `polygon(${cutoff.left}% 100%, ${cutoff.left}% 0%, 38% 0%, 38% 100%, ${cutoff.right}% 100%, ${cutoff.right}% 0%, 100% 0%, 100% 100%)`
   return (
