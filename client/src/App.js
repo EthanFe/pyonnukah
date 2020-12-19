@@ -15,25 +15,25 @@ const updateGameStateFromServer = (newGameState, game) => {
 }
 
 const keyPressed = (key, keysHeld, socket, thisPlayer, game) => {
-  if (movementKeys[key]) {
-    const newKeyPress = !keysHeld.current[movementKeys[key]]
-    keysHeld.current[movementKeys[key]] = true
+  // if (movementKeys[key]) {
+    const newKeyPress = !keysHeld.current[key]
+    keysHeld.current[key] = true
     if (newKeyPress) {
       game.localMovementInputted(keysHeld.current)
       socket.emit('movementInputted', {keysHeld: keysHeld.current, bunnyState: thisPlayer.bunny})
     }
-  }
-  if (key === "Enter") {
-    const currentlyReady = thisPlayer.ready
-    socket.emit('ready', !currentlyReady)
-  }
+  // }
+  // if (key === "Enter") {
+  //   const currentlyReady = thisPlayer.ready
+  //   socket.emit('ready', !currentlyReady)
+  // }
 }
 
 const keyReleased = (key, keysHeld, socket, thisPlayer) => {
-  if (movementKeys[key]) {
-    keysHeld.current[movementKeys[key]] = false
+  // if (movementKeys[key]) {
+    keysHeld.current[key] = false
     socket.emit('movementInputted', {keysHeld: keysHeld.current, bunnyState: thisPlayer.bunny})
-  }
+  // }
 }
 
 function App({socket}) {

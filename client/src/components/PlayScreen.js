@@ -1,6 +1,4 @@
-// import TransitionWrapper from './TransitionWrapper.js';
-
-import React from 'react';
+import React, { useRef } from 'react';
 import './PlayScreen.css';
 import bunnyImage from '../images/bunny.png';
 import menorahImage from '../images/menorah.png';
@@ -17,6 +15,8 @@ import background5 from '../images/background_5.jpg';
 import background6 from '../images/background_6.jpg';
 import background7 from '../images/background_7.jpg';
 import background8 from '../images/background_8.jpg';
+import Controls from './Controls';
+import { UP, LEFT, RIGHT } from '../consts';
 
 const backgroundImagesForLevels = [
   background1,
@@ -29,7 +29,7 @@ const backgroundImagesForLevels = [
   background8
 ]
 
-const totalScreenDimensions = {x: 900, y: 600}
+const totalScreenDimensions = {x: 487.5, y: 325}
 
 const rangeOfPositionForObject = (objectDimensions) => ({
   x: totalScreenDimensions.x - objectDimensions.width,
@@ -57,11 +57,21 @@ const PlayScreen = ({gameState, keyPressed, keyReleased}) => {
     borderRadius: "7px",
     position: "relative",
     backgroundImage: `url(${backgroundImagesForLevels[gameState.candlesOnLevel - 1]}`,
-    backgroundSize: "900px"
+    backgroundSize: `${totalScreenDimensions.x}px`
   }
 
   const bunnies = Object.values(gameState.players).map(player => player.bunny)
-  console.log(gameState)
+
+  const keysHeld = useRef({})
+  const updateKeysHeld = (newKeysHeld) => {
+    if (!keysHeld.current[UP] && newKeysHeld[UP]) { keyPressed(UP) }
+    if (keysHeld.current[UP] && !newKeysHeld[UP]) { keyReleased(UP) }
+    if (!keysHeld.current[LEFT] && newKeysHeld[LEFT]) { keyPressed(LEFT) }
+    if (keysHeld.current[LEFT] && !newKeysHeld[LEFT]) { keyReleased(LEFT) }
+    if (!keysHeld.current[RIGHT] && newKeysHeld[RIGHT]) { keyPressed(RIGHT) }
+    if (keysHeld.current[RIGHT] && !newKeysHeld[RIGHT]) { keyReleased(RIGHT) }
+    keysHeld.current = newKeysHeld
+  }
 
   return (
     <div className="wrapper-thing" tabIndex={0} onKeyDown={({key}) => keyPressed(key)} onKeyUp={({key}) => keyReleased(key)}>
@@ -70,9 +80,7 @@ const PlayScreen = ({gameState, keyPressed, keyReleased}) => {
           <Menorah position={{x: 500, y: 0}} displayShamus={gameState.shamusOnMenorah} candles={gameState.candlesOnLevel} litCandles={gameState.litCandles}/>
           <Bunnies bunnies={bunnies}/>
           <PyonPairCircles pyonPairs={gameState.activePyonPairs.map(pyonPair => ({id: pyonPair.id, originTime: pyonPair.originTime, bunnies: pyonPair.playerIds.map(playerId => gameState.players[playerId].bunny)}))}/>
-          <div>
-            Active pyon pairs: {gameState.activePyonPairs.length}
-          </div>
+          <Controls setKeysHeld={updateKeysHeld}/>
         </div>
       </div>
     </div>
@@ -118,7 +126,7 @@ const Bunnies = ({bunnies}) => {
 }
 
 const Bunny = ({position, carryingCandle}) => {
-  const bunnyDimensions = {width: 64, height: 64}
+  const bunnyDimensions = {width: 64 * totalScreenDimensions.x / 900, height: 64 * totalScreenDimensions.x / 900}
   return (
     <>
       {carryingCandle &&
@@ -140,7 +148,7 @@ const Bunny = ({position, carryingCandle}) => {
 }
 
 const Menorah = ({position, displayShamus, candles, litCandles}) => {
-  const dimensions = {width: 524, height: 400}
+  const dimensions = {width: 524 * totalScreenDimensions.x / 900, height: 400 * totalScreenDimensions.y / 600}
 
   return (
     <>
@@ -165,7 +173,7 @@ const Shamus = ({position, dimensions, display}) => {
         alt=""
       />
       <img
-        style={{...styles.image({x: 500, y: 545}, {width: 70, height: 91})}}
+        style={{...styles.image({x: 500, y: 545}, {width: 70  * totalScreenDimensions.x / 900, height: 91 * totalScreenDimensions.x / 900})}}
         src={candleFlameImage}
         alt=""
       />
@@ -174,6 +182,7 @@ const Shamus = ({position, dimensions, display}) => {
 }
 
 const Candles = ({position, dimensions, candles, litCandles}) => {
+  litCandles = {0: true}
   const cutoffValues = [
     {left: 38, right: 100},
     {left: 38, right: 89.5},
@@ -187,25 +196,24 @@ const Candles = ({position, dimensions, candles, litCandles}) => {
   ]
 
   const flamePositionOffsets = [
-    {x: ((900 - 208) / 900) * 1000, y: ((600 - 305) / 600) * 1000},
-    {x: ((900 - 251) / 900) * 1000, y: ((600 - 305) / 600) * 1000},
-    {x: ((900 - 298) / 900) * 1000, y: ((600 - 305) / 600) * 1000},
-    {x: ((900 - 344) / 900) * 1000, y: ((600 - 305) / 600) * 1000},
-    {x: ((900 - 555) / 900) * 1000, y: ((600 - 305) / 600) * 1000},
-    {x: ((900 - 600) / 900) * 1000, y: ((600 - 305) / 600) * 1000},
-    {x: ((900 - 648) / 900) * 1000, y: ((600 - 305) / 600) * 1000},
-    {x: ((900 - 692) / 900) * 1000, y: ((600 - 305) / 600) * 1000},
+    {x: ((totalScreenDimensions.x - 208 * totalScreenDimensions.x / 900) / totalScreenDimensions.x) * 1000, y: ((totalScreenDimensions.y - 305 * totalScreenDimensions.x / 900) / totalScreenDimensions.y) * 1000},
+    {x: ((totalScreenDimensions.x - 251 * totalScreenDimensions.x / 900) / totalScreenDimensions.x) * 1000, y: ((totalScreenDimensions.y - 305 * totalScreenDimensions.x / 900) / totalScreenDimensions.y) * 1000},
+    {x: ((totalScreenDimensions.x - 298 * totalScreenDimensions.x / 900) / totalScreenDimensions.x) * 1000, y: ((totalScreenDimensions.y - 305 * totalScreenDimensions.x / 900) / totalScreenDimensions.y) * 1000},
+    {x: ((totalScreenDimensions.x - 344 * totalScreenDimensions.x / 900) / totalScreenDimensions.x) * 1000, y: ((totalScreenDimensions.y - 305 * totalScreenDimensions.x / 900) / totalScreenDimensions.y) * 1000},
+    {x: ((totalScreenDimensions.x - 555 * totalScreenDimensions.x / 900) / totalScreenDimensions.x) * 1000, y: ((totalScreenDimensions.y - 305 * totalScreenDimensions.x / 900) / totalScreenDimensions.y) * 1000},
+    {x: ((totalScreenDimensions.x - 600 * totalScreenDimensions.x / 900) / totalScreenDimensions.x) * 1000, y: ((totalScreenDimensions.y - 305 * totalScreenDimensions.x / 900) / totalScreenDimensions.y) * 1000},
+    {x: ((totalScreenDimensions.x - 648 * totalScreenDimensions.x / 900) / totalScreenDimensions.x) * 1000, y: ((totalScreenDimensions.y - 305 * totalScreenDimensions.x / 900) / totalScreenDimensions.y) * 1000},
+    {x: ((totalScreenDimensions.x - 692 * totalScreenDimensions.x / 900) / totalScreenDimensions.x) * 1000, y: ((totalScreenDimensions.y - 305 * totalScreenDimensions.x / 900) / totalScreenDimensions.y) * 1000},
   ]
 
   const candleFlames = Object.keys(litCandles).filter(index => litCandles[index]).map(index =>
     <img
-      style={styles.image({x: flamePositionOffsets[index].x, y: flamePositionOffsets[index].y}, {width: 70, height: 91})}
+      style={styles.image({x: flamePositionOffsets[index].x, y: flamePositionOffsets[index].y}, {width: 70 * totalScreenDimensions.x / 900, height: 91 * totalScreenDimensions.x / 900})}
       src={candleFlameImage}
       alt=""
       key={index}
     />
   )
-  console.log(candles)
   const cutoff = cutoffValues[candles]
   const clipPathValue = `polygon(${cutoff.left}% 100%, ${cutoff.left}% 0%, 38% 0%, 38% 100%, ${cutoff.right}% 100%, ${cutoff.right}% 0%, 100% 0%, 100% 100%)`
   return (
