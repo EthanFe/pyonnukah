@@ -31,7 +31,6 @@ const Controls = ({setKeysHeld}) => {
   }
 
   const displayOffset = {...touchDragVector}
-  console.log(displayOffset)
   if (displayOffset.x > 30) { displayOffset.x = 30 }
   if (displayOffset.x < -30) { displayOffset.x = -30 }
   if (displayOffset.y < -30) { displayOffset.y = -30 }

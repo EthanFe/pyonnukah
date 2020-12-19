@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import './PlayScreen.css';
 import bunnyImage from '../images/bunny.png';
+import bunnyJump from '../images/bunny_jump.png';
 import menorahImage from '../images/menorah.png';
 import candlesImage from '../images/candles_on_menorah.png';
 import candleFlamesImage from '../images/candles_on_menorah_flames.png';
@@ -127,6 +128,7 @@ const Bunnies = ({bunnies}) => {
 
 const Bunny = ({position, carryingCandle}) => {
   const bunnyDimensions = {width: 64 * totalScreenDimensions.x / 900, height: 64 * totalScreenDimensions.x / 900}
+  const image = position.y > 0 ? bunnyJump : bunnyImage
   return (
     <>
       {carryingCandle &&
@@ -140,7 +142,7 @@ const Bunny = ({position, carryingCandle}) => {
       />}
       <img
         style={styles.image(position, bunnyDimensions)}
-        src={bunnyImage}
+        src={image}
         alt=""
       />
     </>
