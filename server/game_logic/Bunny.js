@@ -3,6 +3,8 @@ class Bunny {
     this.player = player
     this.position = {x, y}
     this.canJump = true
+    this.canPyon = false
+    this.hasPyonned = false
     this.velocity = {x: 0, y: 0}
     this.carryingCandle = false
   }
@@ -12,6 +14,7 @@ class Bunny {
       position: this.position,
       velocity: this.velocity,
       canJump: this.canJump,
+      canPyon: this.canPyon,
       carryingCandle: this.carryingCandle
     }
   }

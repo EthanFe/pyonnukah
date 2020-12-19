@@ -1,5 +1,6 @@
 const { Player } = require("./Player")
 const { UP, DOWN, LEFT, RIGHT } = require('./consts.js')
+const { makeUniqueId } = require("../../client/src/utils")
 
 class Game {
     constructor(sendStateToClients) {
@@ -8,6 +9,7 @@ class Game {
         this.candlesOnLevel = 1
         this.litCandles = {}
         this.shamusOnMenorah = true
+        this.activePyonPairs = []
 
         this.sendStateToClients = sendStateToClients
         this.startSimulation()
@@ -47,9 +49,69 @@ class Game {
     startSimulation() {
         setInterval(() => {
             this.accelerateObjects()
+            this.updatePyonCapableBunnyPairs()
             this.moveObjects()
             this.checkForCandleCollisions()
         }, 1000 / 60)
+    }
+
+    updatePyonCapableBunnyPairs() {
+        let dirty = false
+
+        let existingPyonPairs = this.activePyonPairs
+        existingPyonPairs = existingPyonPairs.filter(pyonPair => 
+            this.bunniesArePyonCapable(
+                this.players[pyonPair.playerIds[0]].bunny,
+                this.players[pyonPair.playerIds[1]].bunny
+            )
+        )
+        if (existingPyonPairs.length < this.activePyonPairs.length) { dirty = true }
+
+        const playerIds = Object.keys(this.players)
+        const pyonPairs = []
+        for (let i = 0; i < playerIds.length; i++) {
+            const playerId1 = playerIds[i]
+            const bunny = this.players[playerId1].bunny
+            if (i === playerIds.length - 1) { continue }
+
+            for (let j = i + 1; j < playerIds.length; j++) {
+                const playerId2 = playerIds[j]
+                const otherBunny = this.players[playerId2].bunny
+                if (this.bunniesArePyonCapable(bunny, otherBunny)) {
+                    if (existingPyonPairs.find(pyonPair => pyonPair.playerIds.find(pairedPlayerId => pairedPlayerId === playerId1) !== undefined
+                                                        && pyonPair.playerIds.find(pairedPlayerId => pairedPlayerId === playerId2) !== undefined)
+                        === undefined) {
+                        pyonPairs.push(
+                            {
+                                id: makeUniqueId(existingPyonPairs.map(pair => pair.id)),
+                                playerIds: [playerId1, playerId2],
+                                originTime: Date.now()
+                            }
+                        )
+                    }
+                }
+            }
+        }
+        if (pyonPairs.length > 0) { dirty = true }
+
+        this.activePyonPairs = [...existingPyonPairs, ...pyonPairs]
+        return dirty
+    }
+
+    bunniesArePyonCapable(bunny1, bunny2) {
+        const maxRange = 140
+        const dist = Math.sqrt(Math.pow(bunny1.position.x - bunny2.position.x, 2) + Math.pow(bunny1.position.y - bunny2.position.y, 2))
+        // requires: both bunnies are airborne, haven't pyonned yet, going upward, and fairly close to each other
+        // jk both going upwards seems too restrictive; only at least one of them has to be moving upwards
+        return bunny1.position.y > 0 && //bunny1.velocity.y >= 0 &&
+               bunny2.position.y > 0 && //bunny2.velocity.y >= 0 &&
+               (bunny1.velocity.y >= 0 || bunny2.velocity.y >= 0) &&
+               !bunny1.hasPyonned && !bunny2.hasPyonned &&
+               dist <= maxRange
+    }
+
+    bunnyCanCurrentlyPyon(bunny) {
+        return this.activePyonPairs.some(pyonPair => pyonPair.playerIds.some(pairedPlayerId => this.players[pairedPlayerId].bunny === bunny))
     }
 
     accelerateObjects() {
@@ -61,19 +123,22 @@ class Game {
         const accelAmount = 0.6
         const decelAmount = 0.8
         const maxSpeed = 12
+
+        const pyonSpeedModifier = 0.3
         
         const playerIds = Object.keys(this.players)
         playerIds.forEach(playerId => {
             const {keysHeld, bunny} = this.players[playerId]
+            const activePyonSpeedModifier = this.bunnyCanCurrentlyPyon(bunny) ? pyonSpeedModifier : 1
             const bunnyIsGrounded = bunny.position.y === 0
 
             if (keysHeld[RIGHT] && !keysHeld[LEFT]) {
-                bunny.velocity.x += accelAmount
+                bunny.velocity.x += accelAmount * activePyonSpeedModifier
                 if (bunny.velocity.x > maxSpeed) {
                     bunny.velocity.x = maxSpeed
                 }
             } else if (keysHeld[LEFT] && !keysHeld[RIGHT]) {
-                bunny.velocity.x -= accelAmount
+                bunny.velocity.x -= accelAmount * activePyonSpeedModifier
                 if (bunny.velocity.x < maxSpeed * -1) {
                     bunny.velocity.x = maxSpeed * -1
                 }
@@ -102,25 +167,44 @@ class Game {
         const gravityAmount = 0.8
         const maxVerticalSpeed = 18
 
+        const pyonSpeedModifier = 0.3
+        const pyonBoostSpeed = 24
+
         const playerIds = Object.keys(this.players)
         playerIds.forEach(playerId => {
             const {keysHeld, bunny} = this.players[playerId]
+            const activePyonSpeedModifier = this.bunnyCanCurrentlyPyon(bunny) ? pyonSpeedModifier : 1
             if (bunny.velocity.y >= maxVerticalSpeed || (bunny.position.y > 0 && !keysHeld[UP])) {
                 bunny.canJump = false
             }
-            if (keysHeld[UP] && bunny.canJump) {
-                bunny.velocity.y += accelAmount
-                if (bunny.velocity.y > maxVerticalSpeed) {
-                    bunny.velocity.y = maxVerticalSpeed
+            if (keysHeld[UP]) {
+                if (bunny.canJump) {
+                    bunny.velocity.y += accelAmount * activePyonSpeedModifier
+                    if (bunny.velocity.y > maxVerticalSpeed) {
+                        bunny.velocity.y = maxVerticalSpeed
+                    }
+                } else if (bunny.canPyon && !bunny.hasPyonned && this.bunnyCanCurrentlyPyon(bunny)) {
+                    bunny.velocity.y = pyonBoostSpeed
+                    bunny.canPyon = false
+                    bunny.hasPyonned = true
                 }
-            } else if (bunny.position.y > 0) {
-                bunny.velocity.y -= gravityAmount
-                if (bunny.velocity.y < maxVerticalSpeed * -1) {
-                    bunny.velocity.y = maxVerticalSpeed * -1
+            }
+            if (bunny.position.y > 0) {
+                if (!keysHeld[UP] || !bunny.canJump) { // gravity only takes effect once bunny isn't accelerating upwards
+                    bunny.velocity.y -= gravityAmount * activePyonSpeedModifier
+                    // if (bunny.velocity.y < maxVerticalSpeed * -1) {
+                    //     bunny.velocity.y = maxVerticalSpeed * -1
+                    // }
+                    // gravity has no max downward speed
                 }
-            } else if (bunny.position.y <= 0) {
+                if (!keysHeld[UP]) {
+                    bunny.canPyon = true // pyon only enabled after jump button is released post-start of jump
+                }
+            } else if (!bunny.canJump) {
                 bunny.velocity.y = 0
                 bunny.canJump = true
+                bunny.canPyon = false
+                bunny.hasPyonned = false
             }
         })
     }
@@ -128,17 +212,20 @@ class Game {
     moveObjects() {
         const minPosY = 0
 
+        const pyonSpeedModifier = 0.3
+
         let dirty = false
         const playerIds = Object.keys(this.players)
         playerIds.forEach(playerId => {
             const bunny = this.players[playerId].bunny
+            const activePyonSpeedModifier = this.bunnyCanCurrentlyPyon(bunny) ? pyonSpeedModifier : 1
             if (bunny.velocity.x !== 0) {
                 dirty = true
-                bunny.position.x += bunny.velocity.x
+                bunny.position.x += bunny.velocity.x * activePyonSpeedModifier
             }
             if (bunny.velocity.y !== 0) {
                 dirty = true
-                bunny.position.y += bunny.velocity.y
+                bunny.position.y += bunny.velocity.y * activePyonSpeedModifier
                 if (bunny.position.y < minPosY) {
                     bunny.position.y = minPosY
                 }
